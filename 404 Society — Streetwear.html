@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>404 Society — Streetwear</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--fg:#111;--mut:#777;--card:#f4f4f2;--ac:#ff3d2e;--ln:#e6e6e3;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e0e0e;--fg:#f5f5f2;--mut:#999;--card:#1b1b1b;--ln:#2a2a2a}}
+:root[data-theme="dark"]{--bg:#0e0e0e;--fg:#f5f5f2;--mut:#999;--card:#1b1b1b;--ln:#2a2a2a}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font-family:'Space Grotesk',system-ui,sans-serif}
+.bar{background:var(--fg);color:var(--bg);text-align:center;font-size:12px;padding:8px;letter-spacing:.5px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--ln);display:flex;align-items:center;justify-content:space-between;padding:14px 5vw;gap:12px}
+.logo{font-weight:700;font-size:20px;letter-spacing:-1px}.logo b{color:var(--ac)}
+nav{display:flex;gap:22px;font-size:14px}nav a{color:var(--fg);text-decoration:none}nav a:hover{color:var(--ac)}
+.act{display:flex;gap:10px;align-items:center}
+button{font:inherit;cursor:pointer;border:0}
+.btn{background:var(--fg);color:var(--bg);padding:12px 22px;font-weight:600;border-radius:2px}
+.btn:hover{background:var(--ac);color:#fff}
+.ghost{background:none;color:var(--fg);border:1px solid var(--fg);padding:8px 14px;font-size:13px;border-radius:2px}
+.hero{position:relative;min-height:78vh;display:grid;align-items:center;padding:0 5vw;overflow:hidden;background:var(--card)}
+#c{position:absolute;right:0;top:0;width:100%;height:100%}
+.hero .t{position:relative;z-index:2;max-width:560px;pointer-events:none}.hero .t *{pointer-events:auto}
+#cap{position:absolute;right:5vw;bottom:22px;z-index:2;font-size:12px;letter-spacing:3px;font-weight:700;color:var(--ac);text-transform:uppercase}.fl{position:absolute;inset:0;z-index:1;pointer-events:none}.fl span{position:absolute;font-size:12px;padding:6px 12px;border-radius:20px;background:var(--bg);border:1px solid var(--ln);animation:fl 6s ease-in-out infinite}@keyframes fl{50%{transform:translateY(-14px)}}@media(max-width:700px){.fl span:nth-child(n+4){display:none}}.tag{font-size:12px;letter-spacing:3px;color:var(--ac);font-weight:700}
+h1{font-size:clamp(46px,9vw,104px);line-height:.9;margin:12px 0;letter-spacing:-4px}
+.hero p{color:var(--mut);max-width:380px}
+.strip{display:flex;overflow:auto;gap:10px;padding:18px 5vw;border-bottom:1px solid var(--ln)}
+.chip{white-space:nowrap;border:1px solid var(--ln);background:none;color:var(--fg);padding:9px 18px;border-radius:30px;font-size:13px}
+.chip.on{background:var(--fg);color:var(--bg)}
+.sec{padding:36px 5vw}.sec h2{margin:0 0 20px;font-size:26px;letter-spacing:-1px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px}
+.p{cursor:pointer}.img{aspect-ratio:3/4;background:var(--card);display:grid;place-items:center;font-size:76px;position:relative;transition:.3s;overflow:hidden}
+.p:hover .img{transform:translateY(-4px)}
+.img i{position:absolute;top:10px;left:10px;background:var(--ac);color:#fff;font-style:normal;font-size:11px;padding:3px 8px;font-weight:700}
+.add{position:absolute;bottom:0;left:0;right:0;background:var(--fg);color:var(--bg);padding:11px;font-size:13px;transform:translateY(100%);transition:.25s}
+.p:hover .add{transform:none}
+.sz{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 6px}.sz button{min-width:36px;padding:6px 8px;font-size:12px;background:none;color:var(--fg);border:1px solid var(--ln)}.sz button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}.ab{width:100%;margin-top:10px;padding:10px;font-size:13px}.p h3{margin:10px 0 2px;font-size:14px;font-weight:600}.p small{color:var(--mut)}.pr{font-weight:700;margin-top:4px}.pr s{color:var(--mut);font-weight:400;margin-left:6px}
+.ship{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:var(--ln);border-block:1px solid var(--ln)}
+.ship div{background:var(--bg);padding:24px;text-align:center;font-size:14px}.ship b{display:block;font-size:20px;margin-bottom:4px}
+footer{padding:36px 5vw;color:var(--mut);font-size:13px;border-top:1px solid var(--ln)}
+.ov{position:fixed;inset:0;background:#0008;z-index:30;display:none}.ov.on{display:block}
+.dr{position:fixed;top:0;right:0;height:100%;width:min(400px,100%);background:var(--bg);z-index:31;transform:translateX(100%);transition:.3s;display:flex;flex-direction:column;padding:20px}
+.dr.on{transform:none}
+.row{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--ln);font-size:14px}
+.row .e{font-size:32px;background:var(--card);width:56px;height:56px;display:grid;place-items:center}.row>div{flex:1}
+.q button{background:var(--card);color:var(--fg);width:24px;height:24px}
+.sum{margin-top:auto;font-size:14px}.sum div{display:flex;justify-content:space-between;padding:4px 0}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--bg);z-index:41;padding:30px;width:min(360px,92%);text-align:center;display:none;border:1px solid var(--ln)}
+.modal.on{display:block}.g{width:100%;background:#fff;color:#222;border:1px solid #ccc;padding:12px;font-weight:600;margin-top:16px;border-radius:2px}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:12px 20px;z-index:50;font-size:14px;display:none}
+@media(max-width:700px){nav{display:none}}
+</style></head><body>
+<div class="bar">FREE SHIPPING ON ORDERS BELOW ₹2000 • SECURE PAYMENTS BY CASHFREE</div>
+<header>
+<div class="logo">404<b>.</b>SOCIETY</div>
+<nav><a href="#shop">New</a><a href="#shop">Men</a><a href="#shop">Women</a><a href="#shop">Accessories</a></nav>
+<div class="act"><button class="ghost" id="u" onclick="login()">Sign in</button><button class="btn" onclick="cart(1)">Bag (<span id="n">0</span>)</button></div>
+</header>
+<section class="hero"><canvas id="c"></canvas>
+<div class="t"><div class="tag">WEAR YOUR MIND</div><h1>Not found.<br>Just worn.</h1><p>Your mind has no fixed size, and neither does your fit. Streetwear for the overthinkers, dreamers and 404-ers.</p><br><button class="btn" onclick="document.getElementById('shop').scrollIntoView()">Shop the drop</button></div><div class="fl"><span style="right:8%;top:14%">overthinking 🧠</span><span style="right:34%;top:24%;animation-delay:-2s">main character era</span><span style="right:6%;top:62%;animation-delay:-4s">404 vibes</span><span style="right:38%;bottom:16%;animation-delay:-1s">no cap 🧢</span><span style="right:22%;top:8%;animation-delay:-3s">aesthetic</span></div><div id="cap">Your mind</div></section>
+<div class="strip" id="f"></div>
+<section class="sec" id="shop"><h2>Trending now</h2><div class="grid" id="g"></div></section>
+<section class="ship"><div><b>₹0</b>Shipping below ₹2000</div><div><b>7 days</b>Easy returns</div><div><b>Cashfree</b>UPI • Cards • Netbanking</div><div><b>Google</b>One-tap sign in</div></section>
+<footer>© 2026 404 Society. All rights reserved.</footer>
+<div class="ov" id="ov" onclick="cart(0);closeM()"></div>
+<aside class="dr" id="dr"><div style="display:flex;justify-content:space-between"><b>Your bag</b><button onclick="cart(0)" style="background:none;color:var(--fg);font-size:20px">✕</button></div>
+<div id="items" style="overflow:auto"></div>
+<div class="sum"><div><span>Subtotal</span><span id="s1">₹0</span></div><div><span>Shipping</span><span id="s2">₹0</span></div><div style="font-weight:700;font-size:17px"><span>Total</span><span id="s3">₹0</span></div><br><button class="btn" style="width:100%" onclick="checkout()">Checkout with Cashfree</button></div></aside>
+<div class="modal" id="m"><h3 style="margin:0">Sign in to continue</h3><p style="color:var(--mut);font-size:14px">Google account required to shop at 404 Society.</p><button class="g" onclick="doLogin()">G&nbsp; Continue with Google</button></div>
+<div class="toast" id="t"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ===== CONFIG: connect your backend here ===== */
+const CFG={shipBelow2000:0,shipAbove2000:99,threshold:2000,
+ shopifyDomain:'YOUR-STORE.myshopify.com',storefrontToken:'',   // Shopify Storefront API (products/orders; admin in Shopify)
+ googleClientId:'',                                              // Google Identity Services
+ cashfreeMode:'sandbox'};                                        // Cashfree: order created server-side
+const P=[["Glitch Oversized Tee","Men","👕",1299,1799,"NEW"],["Error Hoodie","Men","🧥",2499,3299,"-24%"],["Void Cargo Pants","Men","👖",1899,2499,""],["Null Sneakers","Accessories","👟",3499,4499,"HOT"],["Ctrl+Z Crop Top","Women","👚",999,1499,"NEW"],["Redirect Jacket","Women","🧥",2999,3999,"-25%"],["Cache Cap","Accessories","🧢",699,999,""],["Syntax Dress","Women","👗",1799,2299,"NEW"]];
+let cat="All",bag={},user=null;
+const $=i=>document.getElementById(i),R=n=>"₹"+n.toLocaleString("en-IN");
+function chips(){$("f").innerHTML=["All","Men","Women","Accessories"].map(c=>`<button class="chip ${c==cat?'on':''}" onclick="cat='${c}';chips();grid()">${c}</button>`).join("")}
+const SZ=p=>p[0].includes("Sneakers")?["UK 6","UK 7","UK 8","UK 9","UK 10"]:p[1]=="Accessories"?["One size"]:["S","M","L","XL"];
+const sel={};P.forEach((p,i)=>{if(SZ(p).length==1)sel[i]=SZ(p)[0]});
+function pick(i,s){sel[i]=s;grid()}
+function grid(){$("g").innerHTML=P.map((p,i)=>cat=="All"||p[1]==cat?`<div class="p"><div class="img">${p[2]}${p[5]?`<i>${p[5]}</i>`:""}</div><h3>${p[0]}</h3><small>${p[1]}</small><div class="pr">${R(p[3])}<s>${R(p[4])}</s></div><div class="sz">${SZ(p).map(s=>`<button class="${sel[i]==s?'on':''}" onclick="pick(${i},'${s}')">${s}</button>`).join("")}</div><button class="btn ab" onclick="add(${i})">Add to bag</button></div>`:"").join("")}
+function toast(m){const t=$("t");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",1800)}
+function add(i){if(!sel[i])return toast("Please select a size");const k=i+"|"+sel[i];bag[k]=(bag[k]||0)+1;draw();toast("Added — size "+sel[i])}
+function chg(k,d){bag[k]+=d;if(bag[k]<1)delete bag[k];draw()}
+function totals(){const s=Object.keys(bag).reduce((a,k)=>a+P[k.split("|")[0]][3]*bag[k],0);const sh=!s?0:(s<CFG.threshold?CFG.shipBelow2000:CFG.shipAbove2000);return[s,sh,s+sh]}
+function draw(){const k=Object.keys(bag);$("n").textContent=k.reduce((a,i)=>a+bag[i],0);
+$("items").innerHTML=k.length?k.map(key=>{const[i,s]=key.split("|");return `<div class="row"><div class="e">${P[i][2]}</div><div>${P[i][0]}<br><small style="color:var(--mut)">Size: ${s}</small><br><b>${R(P[i][3])}</b></div><div class="q" style="flex:none"><button onclick="chg('${key}',-1)">−</button> ${bag[key]} <button onclick="chg('${key}',1)">+</button></div></div>`}).join(""):'<p style="color:var(--mut)">Your bag is empty.</p>';
+const[t,s,g]=totals();$("s1").textContent=R(t);$("s2").textContent=s?R(s):"FREE";$("s3").textContent=R(g)}
+function cart(o){$("dr").classList.toggle("on",!!o);$("ov").classList.toggle("on",!!o)}
+function login(){if(user){user=null;$("u").textContent="Sign in";toast("Signed out");return}$("m").classList.add("on");$("ov").classList.add("on")}
+function closeM(){$("m").classList.remove("on")}
+function doLogin(){/* replace with google.accounts.id flow + verify token on your server */user={name:"Guest"};$("u").textContent="Hi, "+user.name+" ✓";closeM();cart(0);toast("Signed in with Google (demo)")}
+function checkout(){if(!Object.keys(bag).length)return toast("Bag is empty");if(!user){cart(0);return login()}
+/* 1) POST cart to your server -> create Shopify draft order + Cashfree order -> get payment_session_id
+   2) Load Cashfree JS SDK on your own domain and call cashfree.checkout({paymentSessionId}) */
+toast("Redirecting to Cashfree… (connect backend)")}
+/* ===== 3D hero ===== */
+(function(){const c=$("c"),h=c.parentElement;let r;try{r=new THREE.WebGLRenderer({canvas:c,alpha:true,antialias:true})}catch(e){return}
+const s=new THREE.Scene(),cam=new THREE.PerspectiveCamera(45,1,.1,100);cam.position.z=7;
+const g=new THREE.Group();s.add(g);
+const N=3200,rn=(a,b)=>a+Math.random()*(b-a);
+/* Target 1: a brain (two wrinkled lobes). Target 2: an oversized tee. Particles morph between them: mind -> fit */
+const brain=[],tee=[];
+while(brain.length<N){const sd=Math.random()<.5?-1:1,x=rn(-1,1),y=rn(-1,1),z=rn(-1,1),l=Math.hypot(x,y,z);if(l>1||l<.82)continue;const w=1+.12*Math.sin(x*9+y*7)*Math.cos(z*8);brain.push([sd*.62+x*.85*w,y*1.15*w,z*1.3*w])}
+while(tee.length<N){const x=rn(-1.95,1.95),y=rn(-1.4,1.15),ax=Math.abs(x);let ok=ax<=1&&y<=1.05;if(!ok&&ax>1&&ax<=1.95){const d=(ax-1)*.55;ok=y<=1.05-d&&y>=.3-d}if(ok&&y>.7&&Math.hypot(x,y-1.1)<.42)ok=false;if(ok)tee.push([x,y-.1,rn(-.14,.14)])}
+const pos=new Float32Array(N*3),col=new Float32Array(N*3);
+for(let i=0;i<N;i++){pos.set(brain[i],i*3);const t=(brain[i][1]+1.4)/2.8;col.set([1-.45*t,.24+.16*t,.18+.82*t],i*3)}
+const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(pos,3));geo.setAttribute("color",new THREE.BufferAttribute(col,3));
+const pts=new THREE.Points(geo,new THREE.PointsMaterial({size:.045,vertexColors:true,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false}));
+g.add(pts);
+const ring=new THREE.Mesh(new THREE.TorusGeometry(2.6,.008,8,120),new THREE.MeshBasicMaterial({color:0x888888,transparent:true,opacity:.4}));ring.rotation.x=1.2;g.add(ring);
+let mode=0,tm=0;const cap=$("cap");
+function flip(){mode=1-mode;cap.textContent=mode?"Your fit":"Your mind"}
+h.addEventListener("click",e=>{if(!e.target.closest(".t"))flip()});
+let mx=0,my=0;h.addEventListener("pointermove",e=>{mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5});
+function rs(){const w=h.clientWidth,H=h.clientHeight;r.setSize(w,H,false);r.setPixelRatio(Math.min(devicePixelRatio,2));cam.aspect=w/H;cam.updateProjectionMatrix();g.position.x=w>700?2:0;g.scale.setScalar(w>700?1:.8)}
+rs();addEventListener("resize",rs);
+(function loop(){tm+=.016;if(tm>4.5){tm=0;flip()}
+const T=mode?tee:brain,p=geo.attributes.position.array;
+for(let i=0;i<N;i++){const t=T[i],j=i*3;p[j]+=(t[0]-p[j])*.05+(Math.random()-.5)*.004;p[j+1]+=(t[1]-p[j+1])*.05+(Math.random()-.5)*.004;p[j+2]+=(t[2]-p[j+2])*.05}
+geo.attributes.position.needsUpdate=true;
+g.rotation.y=Math.sin(tm*.5+(mode?1:0))*.5+mx*.8;g.rotation.x=my*.5;ring.rotation.z+=.004;
+r.render(s,cam);requestAnimationFrame(loop)})()})();
+chips();grid();draw();
+</script></body></html>
