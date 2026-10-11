@@ -2,13 +2,22 @@
    If /api is unavailable (e.g. opened as a plain file) the demo catalogue keeps working. */
 (async () => {
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => "&#" + c.charCodeAt(0) + ";");
-  const api = async (p, o) => { const r = await fetch(p, o); let d = {}; try { d = await r.json(); } catch (e) {} if (!r.ok) throw new Error(d.error || "Request failed"); return d; };
+  const api = async (p, o) => { const r = await fetch(p, o); let d = {}; try { d = await r.json(); } catch (e) { if (r.ok) throw new Error("Not JSON"); } if (!r.ok) throw new Error(d.error || "Request failed"); return d; };
   const post = (p, b) => api(p, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b || {}) });
   const load = (src, ok) => new Promise((res, rej) => { if (ok()) return res(); const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
 
-  let C, L;
-  try { C = await api("/api/config"); L = (await api("/api/products")).products; } catch (e) { return; }
-  if (!L || !L.length) return;
+  // Clear message instead of silently showing demo products
+  const warn = (msg) => {
+    const b = document.createElement("div");
+    b.style.cssText = "background:#ff3d2e;color:#fff;padding:10px 5vw;font-size:13px;text-align:center";
+    b.textContent = "Demo mode — " + msg;
+    document.body.prepend(b);
+    checkout = () => toast("Store not connected yet");
+  };
+  let C, L, step = "/api/config";
+  try { C = await api(step); step = "/api/products"; L = (await api(step)).products; }
+  catch (e) { return warn(step === "/api/config" ? "the Worker API is not reachable (deploy src/worker.js with wrangler.jsonc)" : "Shopify did not respond: " + e.message + " (check SHOPIFY_DOMAIN and SHOPIFY_STOREFRONT_TOKEN)"); }
+  if (!L || !L.length) return warn("Shopify returned no products (set products to Active and available to your Storefront API token)");
 
   const vm = {}, sel = {};
   L.forEach((p) => { p.variants.forEach((v) => (vm[v.id] = { p, v })); if (p.variants.length === 1 && p.variants[0].available) sel[p.id] = p.variants[0].id; });
