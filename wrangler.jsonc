@@ -1,5 +1,30 @@
 {
   "name": "404-society-official",
+  "main": "src/worker.js",
   "compatibility_date": "2026-10-01",
-  "assets": { "directory": "./public" }
+  "observability": { "enabled": true },
+
+  // Website files + the /api/* Worker
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+
+  // Binding: storage for pending Cashfree orders (Cloudflare creates it on deploy)
+  "kv_namespaces": [{ "binding": "ORDERS" }],
+
+  // Variables: safe to keep in GitHub. EDIT the two values marked CHANGE ME.
+  "vars": {
+    "SHOPIFY_DOMAIN": "CHANGE-ME.myshopify.com",
+    "GOOGLE_CLIENT_ID": "CHANGE-ME.apps.googleusercontent.com",
+    "CASHFREE_ENV": "sandbox",
+    "SHIP_THRESHOLD": "2000",
+    "SHIP_BELOW": "0",
+    "SHIP_ABOVE": "99"
+  }
+
+  // SECRETS are NOT put here. Add these in Cloudflare > Settings > Variables and Secrets:
+  // SHOPIFY_STOREFRONT_TOKEN, SHOPIFY_ADMIN_TOKEN, CASHFREE_CLIENT_ID,
+  // CASHFREE_CLIENT_SECRET, SESSION_SECRET
 }
