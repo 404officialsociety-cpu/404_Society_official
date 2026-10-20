@@ -75,7 +75,11 @@ const CFG={shipBelow2000:0,shipAbove2000:99,threshold:2000,
  shopifyDomain:'YOUR-STORE.myshopify.com',storefrontToken:'',   // Shopify Storefront API (products/orders; admin in Shopify)
  googleClientId:'',                                              // Google Identity Services
  cashfreeMode:'sandbox'};                                        // Cashfree: order created server-side
-const P=[["Glitch Oversized Tee","Men","👕",1299,1799,"NEW"],["Error Hoodie","Men","🧥",2499,3299,"-24%"],["Void Cargo Pants","Men","👖",1899,2499,""],["Null Sneakers","Accessories","👟",3499,4499,"HOT"],["Ctrl+Z Crop Top","Women","👚",999,1499,"NEW"],["Redirect Jacket","Women","🧥",2999,3999,"-25%"],["Cache Cap","Accessories","🧢",699,999,""],["Syntax Dress","Women","👗",1799,2299,"NEW"]];
+async function loadProducts() {
+  const r = await fetch("/api/products");
+  const { products } = await r.json();
+  return products; // id, title, image, price, compareAt, variants[]
+}
 let cat="All",bag={},user=null;
 const $=i=>document.getElementById(i),R=n=>"₹"+n.toLocaleString("en-IN");
 function chips(){$("f").innerHTML=["All","Men","Women","Accessories"].map(c=>`<button class="chip ${c==cat?'on':''}" onclick="cat='${c}';chips();grid()">${c}</button>`).join("")}
