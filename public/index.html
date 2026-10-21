@@ -70,38 +70,43 @@ footer{padding:36px 5vw;color:var(--mut);font-size:13px;border-top:1px solid var
 <div class="toast" id="t"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-/* ===== CONFIG: connect your backend here ===== */
-const CFG={shipBelow2000:0,shipAbove2000:99,threshold:2000,
- shopifyDomain:'YOUR-STORE.myshopify.com',storefrontToken:'',   // Shopify Storefront API (products/orders; admin in Shopify)
- googleClientId:'',                                              // Google Identity Services
- cashfreeMode:'sandbox'};                                        // Cashfree: order created server-side
-async function loadProducts() {
-  const r = await fetch("/api/products");
-  const { products } = await r.json();
-  return products; // id, title, image, price, compareAt, variants[]
+const CFG={threshold:2000,shipBelow:0,shipAbove:99};
+let P=[],cat="All",bag={},user=null;const sel={};
+const $=i=>document.getElementById(i),R=n=>"₹"+Number(n).toLocaleString("en-IN");
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pic=p=>p.image?`<img src="${esc(p.image)}" alt="${esc(p.title)}" style="width:100%;height:100%;object-fit:cover">`:"👕";
+async function loadProducts(){
+ $("g").innerHTML='<p style="color:var(--mut)">Loading…</p>';
+ try{
+  const r=await fetch("/api/products"),d=await r.json();
+  if(!r.ok)throw new Error(d.error||r.status);
+  P=d.products||[];
+  P.forEach((p,i)=>{if(p.variants.length==1)sel[i]=0});
+  grid();
+ }catch(e){$("g").innerHTML='<p style="color:var(--mut)">Could not load products ('+esc(e.message)+')</p>';console.error(e)}
 }
-let cat="All",bag={},user=null;
-const $=i=>document.getElementById(i),R=n=>"₹"+n.toLocaleString("en-IN");
 function chips(){$("f").innerHTML=["All","Men","Women","Accessories"].map(c=>`<button class="chip ${c==cat?'on':''}" onclick="cat='${c}';chips();grid()">${c}</button>`).join("")}
-const SZ=p=>p[0].includes("Sneakers")?["UK 6","UK 7","UK 8","UK 9","UK 10"]:p[1]=="Accessories"?["One size"]:["S","M","L","XL"];
-const sel={};P.forEach((p,i)=>{if(SZ(p).length==1)sel[i]=SZ(p)[0]});
-function pick(i,s){sel[i]=s;grid()}
-function grid(){$("g").innerHTML=P.map((p,i)=>cat=="All"||p[1]==cat?`<div class="p"><div class="img">${p[2]}${p[5]?`<i>${p[5]}</i>`:""}</div><h3>${p[0]}</h3><small>${p[1]}</small><div class="pr">${R(p[3])}<s>${R(p[4])}</s></div><div class="sz">${SZ(p).map(s=>`<button class="${sel[i]==s?'on':''}" onclick="pick(${i},'${s}')">${s}</button>`).join("")}</div><button class="btn ab" onclick="add(${i})">Add to bag</button></div>`:"").join("")}
+function pick(i,j){sel[i]=j;grid()}
+function grid(){
+ const list=P.map((p,i)=>[p,i]).filter(([p])=>cat=="All"||(p.category||"").toLowerCase()==cat.toLowerCase());
+ $("g").innerHTML=list.length?list.map(([p,i])=>{
+  const off=p.compareAt>p.price?Math.round((1-p.price/p.compareAt)*100):0;
+  return `<div class="p"><div class="img">${pic(p)}${off?`<i>-${off}%</i>`:""}</div><h3>${esc(p.title)}</h3><small>${esc(p.category)}</small><div class="pr">${R(p.price)}${off?`<s>${R(p.compareAt)}</s>`:""}</div><div class="sz">${p.variants.map((v,j)=>`<button class="${sel[i]===j?'on':''}" ${v.available?"":"disabled style='opacity:.4'"} onclick="pick(${i},${j})">${esc(v.size)}</button>`).join("")}</div><button class="btn ab" onclick="add(${i})">Add to bag</button></div>`}).join(""):'<p style="color:var(--mut)">No products here yet.</p>'}
 function toast(m){const t=$("t");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",1800)}
-function add(i){if(!sel[i])return toast("Please select a size");const k=i+"|"+sel[i];bag[k]=(bag[k]||0)+1;draw();toast("Added — size "+sel[i])}
+function add(i){const j=sel[i];if(j===undefined)return toast("Please select a size");if(!P[i].variants[j].available)return toast("Sold out");const k=i+"|"+j;bag[k]=(bag[k]||0)+1;draw();toast("Added — size "+P[i].variants[j].size)}
 function chg(k,d){bag[k]+=d;if(bag[k]<1)delete bag[k];draw()}
-function totals(){const s=Object.keys(bag).reduce((a,k)=>a+P[k.split("|")[0]][3]*bag[k],0);const sh=!s?0:(s<CFG.threshold?CFG.shipBelow2000:CFG.shipAbove2000);return[s,sh,s+sh]}
+const vr=k=>{const[i,j]=k.split("|");return[P[i],P[i].variants[j]]};
+function totals(){const s=Object.keys(bag).reduce((a,k)=>a+vr(k)[1].price*bag[k],0);const sh=!s?0:(s<CFG.threshold?CFG.shipBelow:CFG.shipAbove);return[s,sh,s+sh]}
 function draw(){const k=Object.keys(bag);$("n").textContent=k.reduce((a,i)=>a+bag[i],0);
-$("items").innerHTML=k.length?k.map(key=>{const[i,s]=key.split("|");return `<div class="row"><div class="e">${P[i][2]}</div><div>${P[i][0]}<br><small style="color:var(--mut)">Size: ${s}</small><br><b>${R(P[i][3])}</b></div><div class="q" style="flex:none"><button onclick="chg('${key}',-1)">−</button> ${bag[key]} <button onclick="chg('${key}',1)">+</button></div></div>`}).join(""):'<p style="color:var(--mut)">Your bag is empty.</p>';
+$("items").innerHTML=k.length?k.map(key=>{const[p,v]=vr(key);return `<div class="row"><div class="e" style="overflow:hidden">${pic(p)}</div><div>${esc(p.title)}<br><small style="color:var(--mut)">Size: ${esc(v.size)}</small><br><b>${R(v.price)}</b></div><div class="q" style="flex:none"><button onclick="chg('${key}',-1)">−</button> ${bag[key]} <button onclick="chg('${key}',1)">+</button></div></div>`}).join(""):'<p style="color:var(--mut)">Your bag is empty.</p>';
 const[t,s,g]=totals();$("s1").textContent=R(t);$("s2").textContent=s?R(s):"FREE";$("s3").textContent=R(g)}
 function cart(o){$("dr").classList.toggle("on",!!o);$("ov").classList.toggle("on",!!o)}
 function login(){if(user){user=null;$("u").textContent="Sign in";toast("Signed out");return}$("m").classList.add("on");$("ov").classList.add("on")}
 function closeM(){$("m").classList.remove("on")}
-function doLogin(){/* replace with google.accounts.id flow + verify token on your server */user={name:"Guest"};$("u").textContent="Hi, "+user.name+" ✓";closeM();cart(0);toast("Signed in with Google (demo)")}
+function doLogin(){user={name:"Guest"};$("u").textContent="Hi, "+user.name+" ✓";closeM();cart(0);toast("Signed in (demo)")}
 function checkout(){if(!Object.keys(bag).length)return toast("Bag is empty");if(!user){cart(0);return login()}
-/* 1) POST cart to your server -> create Shopify draft order + Cashfree order -> get payment_session_id
-   2) Load Cashfree JS SDK on your own domain and call cashfree.checkout({paymentSessionId}) */
-toast("Redirecting to Cashfree… (connect backend)")}
+const items=Object.keys(bag).map(k=>({variantId:vr(k)[1].id,qty:bag[k]}));console.log(items);
+toast("Checkout not connected yet")}
 /* ===== 3D hero ===== */
 (function(){const c=$("c"),h=c.parentElement;let r;try{r=new THREE.WebGLRenderer({canvas:c,alpha:true,antialias:true})}catch(e){return}
 const s=new THREE.Scene(),cam=new THREE.PerspectiveCamera(45,1,.1,100);cam.position.z=7;
@@ -133,5 +138,5 @@ for(let i=0;i<N;i++){const t=T[i],j=i*3;p[j]+=(t[0]-p[j])*.05+(Math.random()-.5)
 geo.attributes.position.needsUpdate=true;
 g.rotation.y=Math.sin(tm*.7)*.45+mx*.8;g.rotation.x=my*.5;ring.rotation.z+=.004;
 r.render(s,cam);requestAnimationFrame(loop)})()})();
-chips();grid();draw();
+chips();draw();loadProducts();
 </script></body></html>
