@@ -47,6 +47,7 @@ footer{padding:36px 5vw;color:var(--mut);font-size:13px;border-top:1px solid var
 .sum{margin-top:auto;font-size:14px}.sum div{display:flex;justify-content:space-between;padding:4px 0}
 .modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--bg);z-index:41;padding:30px;width:min(360px,92%);text-align:center;display:none;border:1px solid var(--ln)}
 .modal.on{display:block}.g{width:100%;background:#fff;color:#222;border:1px solid #ccc;padding:12px;font-weight:600;margin-top:16px;border-radius:2px}
+.modal{max-height:90vh;overflow:auto}.modal input{width:100%;padding:11px;margin-bottom:8px;background:var(--card);color:var(--fg);border:1px solid var(--ln);font:inherit;border-radius:2px}
 .toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:12px 20px;z-index:50;font-size:14px;display:none}
 @media(max-width:700px){nav{display:none}}
 </style></head><body>
@@ -66,8 +67,11 @@ footer{padding:36px 5vw;color:var(--mut);font-size:13px;border-top:1px solid var
 <aside class="dr" id="dr"><div style="display:flex;justify-content:space-between"><b>Your bag</b><button onclick="cart(0)" style="background:none;color:var(--fg);font-size:20px">✕</button></div>
 <div id="items" style="overflow:auto"></div>
 <div class="sum"><div><span>Subtotal</span><span id="s1">₹0</span></div><div><span>Shipping</span><span id="s2">₹0</span></div><div style="font-weight:700;font-size:17px"><span>Total</span><span id="s3">₹0</span></div><br><button class="btn" style="width:100%" onclick="checkout()">Checkout with Cashfree</button></div></aside>
-<div class="modal" id="m"><h3 style="margin:0">Sign in to continue</h3><p style="color:var(--mut);font-size:14px">Google account required to shop at 404 Society.</p><button class="g" onclick="doLogin()">G&nbsp; Continue with Google</button></div>
+<div class="modal" id="m"><h3 style="margin:0">Sign in to continue</h3><p style="color:var(--mut);font-size:14px">Google account required to shop at 404 Society.</p><div id="gb" style="display:flex;justify-content:center;margin-top:16px"></div></div>
+<div class="modal" id="am"><h3 style="margin:0 0 12px">Delivery details</h3><input id="a_name" placeholder="Full name" autocomplete="name"><input id="a_phone" placeholder="Mobile (10 digits)" inputmode="numeric" maxlength="10" autocomplete="tel-national"><input id="a_addr" placeholder="Address" autocomplete="address-line1"><input id="a_city" placeholder="City" autocomplete="address-level2"><input id="a_state" placeholder="State" autocomplete="address-level1"><input id="a_pin" placeholder="Pincode" inputmode="numeric" maxlength="6" autocomplete="postal-code"><button class="btn" id="pay" style="width:100%;margin-top:12px" onclick="pay()">Pay with Cashfree</button></div>
 <div class="toast" id="t"></div>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const CFG={threshold:2000,shipBelow:0,shipAbove:99};
@@ -92,7 +96,7 @@ function grid(){
  $("g").innerHTML=list.length?list.map(([p,i])=>{
   const off=p.compareAt>p.price?Math.round((1-p.price/p.compareAt)*100):0;
   return `<div class="p"><div class="img">${pic(p)}${off?`<i>-${off}%</i>`:""}</div><h3>${esc(p.title)}</h3><small>${esc(p.category)}</small><div class="pr">${R(p.price)}${off?`<s>${R(p.compareAt)}</s>`:""}</div><div class="sz">${p.variants.map((v,j)=>`<button class="${sel[i]===j?'on':''}" ${v.available?"":"disabled style='opacity:.4'"} onclick="pick(${i},${j})">${esc(v.size)}</button>`).join("")}</div><button class="btn ab" onclick="add(${i})">Add to bag</button></div>`}).join(""):'<p style="color:var(--mut)">No products here yet.</p>'}
-function toast(m){const t=$("t");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",1800)}
+function toast(m){const t=$("t");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",3500)}
 function add(i){const j=sel[i];if(j===undefined)return toast("Please select a size");if(!P[i].variants[j].available)return toast("Sold out");const k=i+"|"+j;bag[k]=(bag[k]||0)+1;draw();toast("Added — size "+P[i].variants[j].size)}
 function chg(k,d){bag[k]+=d;if(bag[k]<1)delete bag[k];draw()}
 const vr=k=>{const[i,j]=k.split("|");return[P[i],P[i].variants[j]]};
@@ -101,12 +105,55 @@ function draw(){const k=Object.keys(bag);$("n").textContent=k.reduce((a,i)=>a+ba
 $("items").innerHTML=k.length?k.map(key=>{const[p,v]=vr(key);return `<div class="row"><div class="e" style="overflow:hidden">${pic(p)}</div><div>${esc(p.title)}<br><small style="color:var(--mut)">Size: ${esc(v.size)}</small><br><b>${R(v.price)}</b></div><div class="q" style="flex:none"><button onclick="chg('${key}',-1)">−</button> ${bag[key]} <button onclick="chg('${key}',1)">+</button></div></div>`}).join(""):'<p style="color:var(--mut)">Your bag is empty.</p>';
 const[t,s,g]=totals();$("s1").textContent=R(t);$("s2").textContent=s?R(s):"FREE";$("s3").textContent=R(g)}
 function cart(o){$("dr").classList.toggle("on",!!o);$("ov").classList.toggle("on",!!o)}
-function login(){if(user){user=null;$("u").textContent="Sign in";toast("Signed out");return}$("m").classList.add("on");$("ov").classList.add("on")}
-function closeM(){$("m").classList.remove("on")}
-function doLogin(){user={name:"Guest"};$("u").textContent="Hi, "+user.name+" ✓";closeM();cart(0);toast("Signed in (demo)")}
-function checkout(){if(!Object.keys(bag).length)return toast("Bag is empty");if(!user){cart(0);return login()}
-const items=Object.keys(bag).map(k=>({variantId:vr(k)[1].id,qty:bag[k]}));console.log(items);
-toast("Checkout not connected yet")}
+let GCID="",CFMODE="sandbox";
+async function loadConfig(){
+ try{const c=await(await fetch("/api/config")).json();GCID=c.googleClientId;CFMODE=c.cashfreeMode;CFG.threshold=c.threshold;CFG.shipBelow=c.shipBelow;CFG.shipAbove=c.shipAbove;draw()}catch(e){console.error(e)}
+ try{const r=await fetch("/api/me");if(r.ok)setUser(await r.json())}catch(e){}
+}
+function setUser(u){user=u;$("u").textContent=u?"Hi, "+String(u.name).split(" ")[0]+" ✓":"Sign in"}
+function login(){
+ if(user){fetch("/api/auth/logout",{method:"POST"}).then(()=>{setUser(null);toast("Signed out")});return}
+ if(!GCID)return toast("Google sign-in is not configured");
+ if(!(window.google&&google.accounts))return toast("Google is still loading, try again");
+ $("m").classList.add("on");$("ov").classList.add("on");
+ google.accounts.id.initialize({client_id:GCID,callback:onCred});
+ $("gb").innerHTML="";google.accounts.id.renderButton($("gb"),{theme:"outline",size:"large",width:260});
+}
+async function onCred(resp){
+ try{const r=await fetch("/api/auth/google",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({credential:resp.credential})});
+  const d=await r.json();if(!r.ok)throw new Error(d.error||"Sign-in failed");
+  setUser(d);closeM();toast("Signed in");if(Object.keys(bag).length)cart(1);
+ }catch(e){toast(e.message)}
+}
+function closeM(){$("m").classList.remove("on");$("am").classList.remove("on");$("ov").classList.remove("on")}
+function checkout(){
+ if(!Object.keys(bag).length)return toast("Bag is empty");
+ if(!user){cart(0);return login()}
+ cart(0);$("am").classList.add("on");$("ov").classList.add("on");
+}
+async function pay(){
+ const address={name:$("a_name").value.trim(),phone:$("a_phone").value.trim(),address1:$("a_addr").value.trim(),city:$("a_city").value.trim(),state:$("a_state").value.trim(),pincode:$("a_pin").value.trim()};
+ if(address.name.length<2||address.address1.length<5||address.city.length<2||address.state.length<2)return toast("Please fill all details");
+ if(!/^[6-9]\d{9}$/.test(address.phone))return toast("Enter a valid 10-digit mobile number");
+ if(!/^\d{6}$/.test(address.pincode))return toast("Enter a valid 6-digit pincode");
+ const items=Object.keys(bag).map(k=>({variantId:vr(k)[1].id,qty:bag[k]}));
+ const btn=$("pay");btn.disabled=true;btn.textContent="Please wait…";
+ try{
+  const r=await fetch("/api/checkout",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({items,address})});
+  const d=await r.json();
+  if(r.status==401){closeM();setUser(null);return login()}
+  if(!r.ok)throw new Error(d.error||"Checkout failed");
+  if(!window.Cashfree)throw new Error("Payment SDK failed to load");
+  Cashfree({mode:CFMODE}).checkout({paymentSessionId:d.payment_session_id,redirectTarget:"_self"});
+ }catch(e){toast(e.message)}finally{btn.disabled=false;btn.textContent="Pay with Cashfree"}
+}
+async function checkReturn(){
+ const id=new URLSearchParams(location.search).get("order_id");if(!id)return;
+ history.replaceState(null,"",location.pathname);
+ try{const r=await fetch("/api/order-status?order_id="+encodeURIComponent(id));const d=await r.json();
+  if(d.status==="PAID"){bag={};draw();toast("Payment successful. Your order is placed!")}else toast("Payment status: "+(d.status||d.error||"unknown"))
+ }catch(e){toast("Could not check payment status")}
+}
 /* ===== 3D hero ===== */
 (function(){const c=$("c"),h=c.parentElement;let r;try{r=new THREE.WebGLRenderer({canvas:c,alpha:true,antialias:true})}catch(e){return}
 const s=new THREE.Scene(),cam=new THREE.PerspectiveCamera(45,1,.1,100);cam.position.z=7;
@@ -138,5 +185,5 @@ for(let i=0;i<N;i++){const t=T[i],j=i*3;p[j]+=(t[0]-p[j])*.05+(Math.random()-.5)
 geo.attributes.position.needsUpdate=true;
 g.rotation.y=Math.sin(tm*.7)*.45+mx*.8;g.rotation.x=my*.5;ring.rotation.z+=.004;
 r.render(s,cam);requestAnimationFrame(loop)})()})();
-chips();draw();loadProducts();
+chips();draw();loadProducts();loadConfig().then(checkReturn);
 </script></body></html>
