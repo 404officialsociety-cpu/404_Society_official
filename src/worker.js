@@ -1,30 +1,5 @@
-
 // 404 Society — Cloudflare Worker
 // Shopify products + collections • Google login • Cashfree payments
-//
-// Cloudflare secrets:
-// SHOPIFY_STOREFRONT_PUBLIC_TOKEN (or SHOPIFY_STOREFRONT_TOKEN)
-// SHOPIFY_ADMIN_TOKEN
-// CASHFREE_CLIENT_ID
-// CASHFREE_CLIENT_SECRET
-// SESSION_SECRET
-//
-// Cloudflare variables:
-// SHOPIFY_DOMAIN = 404-society-cloudflare.myshopify.com
-// SHOPIFY_API_VERSION = 2026-04 (optional)
-// GOOGLE_CLIENT_ID
-// CASHFREE_ENV = sandbox or production
-// SHIP_THRESHOLD = 2000
-// SHIP_BELOW = 0
-// SHIP_ABOVE = 99
-//
-// Required binding:
-// ORDERS = Cloudflare KV namespace
-//
-// IMPORTANT:
-// This worker provides GET /api/products and GET /api/collections.
-// The frontend must use these endpoints to display Shopify catalog data.
-// Test payment and order integrations before production use.
 
 const enc = new TextEncoder();
 
@@ -70,7 +45,6 @@ async function hmac(secret, data) {
     false,
     ["sign"]
   );
-
   return new Uint8Array(
     await crypto.subtle.sign("HMAC", k, enc.encode(data))
   );
@@ -88,7 +62,6 @@ const SV = (env) => env.SHOPIFY_API_VERSION || "2026-04";
 
 export function shippingFor(subtotal, env = {}) {
   if (!(subtotal > 0)) return 0;
-
   return subtotal < num(env.SHIP_THRESHOLD, 2000)
     ? num(env.SHIP_BELOW, 0)
     : num(env.SHIP_ABOVE, 99);
@@ -98,28 +71,22 @@ export function shippingFor(subtotal, env = {}) {
 
 export async function signSession(p, secret) {
   const body = b64u(b64(enc.encode(JSON.stringify(p))));
-
   return body + "." + b64u(b64(await hmac(secret, body)));
 }
 
 export async function verifySession(tok, secret) {
   if (!tok || !secret) return null;
-
   const [b, s] = tok.split(".");
-
   if (!b || !s || !same(s, b64u(b64(await hmac(secret, b))))) {
     return null;
   }
-
   try {
     const bin = atob(b.replace(/-/g, "+").replace(/_/g, "/"));
-
     const p = JSON.parse(
       new TextDecoder().decode(
         Uint8Array.from(bin, (c) => c.charCodeAt(0))
       )
     );
-
     return p.exp > Date.now() / 1000 ? p : null;
   } catch {
     return null;
@@ -128,7 +95,6 @@ export async function verifySession(tok, secret) {
 
 export async function verifyCashfreeSignature(raw, ts, sig, secret) {
   if (!raw || !ts || !sig || !secret) return false;
-
   return same(b64(await hmac(secret, ts + raw)), sig);
 }
 
@@ -141,9 +107,7 @@ export function normalizeProducts(d) {
         const option = (v.selectedOptions || []).find((x) =>
           /size/i.test(x.name)
         );
-
         const size = option ? option.value : v.title;
-
         return {
           id: v.id,
           size: size === "Default Title" ? "One size" : size,
@@ -168,10 +132,7 @@ export function normalizeProducts(d) {
         price: pricedVariants.length
           ? Math.min(...pricedVariants.map((v) => v.price))
           : 0,
-        compareAt: Math.max(
-          0,
-          ...variants.map((v) => v.compareAt)
-        ),
+        compareAt: Math.max(0, ...variants.map((v) => v.compareAt)),
         variants,
       };
     })
@@ -184,12 +145,9 @@ export function cleanItems(items) {
   if (!Array.isArray(items) || !items.length || items.length > 20) {
     return null;
   }
-
   const map = new Map();
-
   for (const item of items) {
     const qty = Number(item && item.qty);
-
     if (
       !item ||
       typeof item.variantId !== "string" ||
@@ -200,29 +158,17 @@ export function cleanItems(items) {
     ) {
       return null;
     }
-
-    map.set(
-      item.variantId,
-      (map.get(item.variantId) || 0) + qty
-    );
+    map.set(item.variantId, (map.get(item.variantId) || 0) + qty);
   }
-
-  const result = [...map].map(([variantId, qty]) => ({
-    variantId,
-    qty,
-  }));
-
+  const result = [...map].map(([variantId, qty]) => ({ variantId, qty }));
   if (result.some((item) => item.qty > 10)) return null;
-
   return result;
 }
 
 export function validAddress(a) {
   if (!a || typeof a !== "object") return null;
-
   const t = (k) =>
     String(a[k] == null ? "" : a[k]).trim().slice(0, 120);
-
   const address = {
     name: t("name"),
     phone: t("phone"),
@@ -231,7 +177,6 @@ export function validAddress(a) {
     state: t("state"),
     pincode: t("pincode"),
   };
-
   if (
     address.name.length < 2 ||
     address.address1.length < 5 ||
@@ -242,14 +187,12 @@ export function validAddress(a) {
   ) {
     return null;
   }
-
   return address;
 }
 
 export function shopifyOrder(rec, id) {
   const a = rec.address;
   const [first, ...rest] = a.name.split(" ");
-
   return {
     order: {
       email: rec.email,
@@ -258,12 +201,10 @@ export function shopifyOrder(rec, id) {
       send_receipt: true,
       tags: "404society, cashfree",
       note: "Cashfree order " + id,
-
       line_items: rec.lines.map((line) => ({
         variant_id: Number(line.variantId.split("/").pop()),
         quantity: line.qty,
       })),
-
       shipping_lines: [
         {
           title: "Standard shipping",
@@ -271,7 +212,6 @@ export function shopifyOrder(rec, id) {
           price: rec.shipping.toFixed(2),
         },
       ],
-
       shipping_address: {
         first_name: first,
         last_name: rest.join(" ") || "-",
@@ -282,7 +222,6 @@ export function shopifyOrder(rec, id) {
         country: "IN",
         phone: a.phone,
       },
-
       transactions: [
         {
           kind: "sale",
@@ -297,7 +236,6 @@ export function shopifyOrder(rec, id) {
 
 /* ---------- Shopify Storefront API ---------- */
 
-// Products, images, variants, prices and availability.
 const Q_PRODUCTS = `{
   products(first: 50) {
     nodes {
@@ -306,32 +244,21 @@ const Q_PRODUCTS = `{
       handle
       description
       productType
-      featuredImage {
-        url
-        altText
-      }
+      featuredImage { url altText }
       variants(first: 30) {
         nodes {
           id
           title
           availableForSale
-          price {
-            amount
-          }
-          compareAtPrice {
-            amount
-          }
-          selectedOptions {
-            name
-            value
-          }
+          price { amount }
+          compareAtPrice { amount }
+          selectedOptions { name value }
         }
       }
     }
   }
 }`;
 
-// Collections and a selection of products inside each collection.
 const Q_COLLECTIONS = `{
   collections(first: 50) {
     nodes {
@@ -339,10 +266,7 @@ const Q_COLLECTIONS = `{
       title
       handle
       description
-      image {
-        url
-        altText
-      }
+      image { url altText }
       products(first: 20) {
         nodes {
           id
@@ -350,15 +274,9 @@ const Q_COLLECTIONS = `{
           handle
           productType
           availableForSale
-          featuredImage {
-            url
-            altText
-          }
+          featuredImage { url altText }
           priceRange {
-            minVariantPrice {
-              amount
-              currencyCode
-            }
+            minVariantPrice { amount currencyCode }
           }
         }
       }
@@ -371,25 +289,18 @@ const Q_VARIANTS = `query($ids: [ID!]!) {
     ... on ProductVariant {
       id
       availableForSale
-      price {
-        amount
-      }
-      product {
-        title
-      }
+      price { amount }
+      product { title }
     }
   }
 }`;
 
 async function storefront(env, query, variables = {}) {
   const token =
-    env.SHOPIFY_STOREFRONT_PUBLIC_TOKEN ||
-    env.SHOPIFY_STOREFRONT_TOKEN;
+    env.SHOPIFY_STOREFRONT_PUBLIC_TOKEN || env.SHOPIFY_STOREFRONT_TOKEN;
 
   if (!env.SHOPIFY_DOMAIN || !token) {
-    throw new Error(
-      "Missing SHOPIFY_DOMAIN or Storefront API token secret"
-    );
+    throw new Error("Missing SHOPIFY_DOMAIN or Storefront API token secret");
   }
 
   const response = await fetch(
@@ -415,7 +326,6 @@ async function storefront(env, query, variables = {}) {
       "Shopify Storefront GraphQL errors",
       JSON.stringify(result.errors)
     );
-
     throw new Error("Shopify Storefront GraphQL request failed");
   }
 
@@ -424,7 +334,6 @@ async function storefront(env, query, variables = {}) {
 
 async function getShopifyCollections(env) {
   const data = await storefront(env, Q_COLLECTIONS);
-
   return data?.collections?.nodes || [];
 }
 
@@ -436,9 +345,7 @@ async function priceItems(env, items) {
   });
 
   const byId = Object.fromEntries(
-    (data.nodes || [])
-      .filter(Boolean)
-      .map((node) => [node.id, node])
+    (data.nodes || []).filter(Boolean).map((node) => [node.id, node])
   );
 
   let subtotal = 0;
@@ -446,18 +353,11 @@ async function priceItems(env, items) {
 
   for (const item of items) {
     const variant = byId[item.variantId];
-
     if (!variant || !variant.availableForSale) {
-      throw new HttpError(
-        409,
-        "An item in your bag is unavailable"
-      );
+      throw new HttpError(409, "An item in your bag is unavailable");
     }
-
     const price = Number(variant.price.amount);
-
     subtotal += price * item.qty;
-
     lines.push({
       variantId: item.variantId,
       qty: item.qty,
@@ -485,7 +385,6 @@ const cfHeaders = (env) => ({
 
 async function checkout(req, env, sess) {
   const body = await req.json().catch(() => null);
-
   const items = cleanItems(body && body.items);
   const address = validAddress(body && body.address);
 
@@ -498,8 +397,7 @@ async function checkout(req, env, sess) {
   const total = +(subtotal + shipping).toFixed(2);
 
   const orderId =
-    "404_" +
-    crypto.randomUUID().replace(/-/g, "").slice(0, 20);
+    "404_" + crypto.randomUUID().replace(/-/g, "").slice(0, 20);
 
   const origin = new URL(req.url).origin;
 
@@ -510,18 +408,14 @@ async function checkout(req, env, sess) {
       order_id: orderId,
       order_amount: total,
       order_currency: "INR",
-
       customer_details: {
         customer_id:
           "g_" +
-          String(sess.sub)
-            .replace(/[^A-Za-z0-9_-]/g, "")
-            .slice(0, 40),
+          String(sess.sub).replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40),
         customer_email: sess.email,
         customer_phone: address.phone,
         customer_name: address.name,
       },
-
       order_meta: {
         return_url: origin + "/?order_id={order_id}",
         notify_url: origin + "/api/cashfree/webhook",
@@ -560,26 +454,14 @@ async function checkout(req, env, sess) {
 
 /* ---------- Shopify Admin order creation ---------- */
 
-// This uses the Admin REST orders endpoint from your supplied code.
-// Confirm that your Shopify app and plan support this endpoint before
-// using it for real orders. Do not assume a payment succeeded without
-// verifying the Cashfree order status or signed webhook.
 export async function fulfil(id, env) {
   const key = "order:" + id;
-
-  const rec = JSON.parse(
-    (await env.ORDERS.get(key)) || "null"
-  );
+  const rec = JSON.parse((await env.ORDERS.get(key)) || "null");
 
   if (!rec || rec.status !== "pending") return "skipped";
 
   rec.status = "creating";
-
-  await env.ORDERS.put(
-    key,
-    JSON.stringify(rec),
-    { expirationTtl: 2592000 }
-  );
+  await env.ORDERS.put(key, JSON.stringify(rec), { expirationTtl: 2592000 });
 
   const response = await fetch(
     `https://${env.SHOPIFY_DOMAIN}/admin/api/${SV(env)}/orders.json`,
@@ -594,30 +476,14 @@ export async function fulfil(id, env) {
   );
 
   if (!response.ok) {
-    console.error(
-      "Shopify Admin order creation failed",
-      response.status
-    );
-
+    console.error("Shopify Admin order creation failed", response.status);
     rec.status = "pending";
-
-    await env.ORDERS.put(
-      key,
-      JSON.stringify(rec),
-      { expirationTtl: 2592000 }
-    );
-
+    await env.ORDERS.put(key, JSON.stringify(rec), { expirationTtl: 2592000 });
     return "failed";
   }
 
   rec.status = "created";
-
-  await env.ORDERS.put(
-    key,
-    JSON.stringify(rec),
-    { expirationTtl: 2592000 }
-  );
-
+  await env.ORDERS.put(key, JSON.stringify(rec), { expirationTtl: 2592000 });
   return "created";
 }
 
@@ -633,12 +499,9 @@ async function webhook(req, env) {
     env.CASHFREE_CLIENT_SECRET
   );
 
-  if (!valid) {
-    return J({ error: "bad signature" }, 401);
-  }
+  if (!valid) return J({ error: "bad signature" }, 401);
 
   let event;
-
   try {
     event = JSON.parse(raw);
   } catch {
@@ -646,11 +509,7 @@ async function webhook(req, env) {
   }
 
   if (event.type === "PAYMENT_SUCCESS_WEBHOOK") {
-    const id =
-      event.data &&
-      event.data.order &&
-      event.data.order.order_id;
-
+    const id = event.data && event.data.order && event.data.order.order_id;
     if (id && (await fulfil(id, env)) === "failed") {
       return J({ error: "retry" }, 500);
     }
@@ -668,22 +527,17 @@ async function orderStatus(url, env, sess) {
     throw new HttpError(400, "Bad order id");
   }
 
-  const rec = JSON.parse(
-    (await env.ORDERS.get("order:" + id)) || "null"
-  );
+  const rec = JSON.parse((await env.ORDERS.get("order:" + id)) || "null");
 
   if (!rec || rec.email !== sess.email) {
     throw new HttpError(404, "Order not found");
   }
 
-  const response = await fetch(
-    cfBase(env) + "/orders/" + id,
-    { headers: cfHeaders(env) }
-  );
+  const response = await fetch(cfBase(env) + "/orders/" + id, {
+    headers: cfHeaders(env),
+  });
 
-  if (!response.ok) {
-    throw new HttpError(502, "Payment provider error");
-  }
+  if (!response.ok) throw new HttpError(502, "Payment provider error");
 
   const order = await response.json();
 
@@ -700,10 +554,7 @@ async function googleLogin(req, env) {
   const body = await req.json().catch(() => null);
   const credential = body && body.credential;
 
-  if (
-    typeof credential !== "string" ||
-    credential.length > 4096
-  ) {
+  if (typeof credential !== "string" || credential.length > 4096) {
     throw new HttpError(400, "Bad credential");
   }
 
@@ -712,9 +563,7 @@ async function googleLogin(req, env) {
       encodeURIComponent(credential)
   );
 
-  if (!response.ok) {
-    throw new HttpError(401, "Invalid Google token");
-  }
+  if (!response.ok) throw new HttpError(401, "Invalid Google token");
 
   const token = await response.json();
 
@@ -735,22 +584,11 @@ async function googleLogin(req, env) {
     exp: Math.floor(Date.now() / 1000) + 604800,
   };
 
-  const sessionToken = await signSession(
-    session,
-    env.SESSION_SECRET
-  );
+  const sessionToken = await signSession(session, env.SESSION_SECRET);
 
-  return J(
-    {
-      name: session.name,
-      email: session.email,
-    },
-    200,
-    {
-      "set-cookie":
-        `sid=${sessionToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`,
-    }
-  );
+  return J({ name: session.name, email: session.email }, 200, {
+    "set-cookie": `sid=${sessionToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`,
+  });
 }
 
 /* ---------- Router ---------- */
@@ -781,41 +619,28 @@ export default {
         return J({
           googleClientId: env.GOOGLE_CLIENT_ID || "",
           cashfreeMode:
-            env.CASHFREE_ENV === "production"
-              ? "production"
-              : "sandbox",
+            env.CASHFREE_ENV === "production" ? "production" : "sandbox",
           threshold: num(env.SHIP_THRESHOLD, 2000),
           shipBelow: num(env.SHIP_BELOW, 0),
           shipAbove: num(env.SHIP_ABOVE, 99),
         });
       }
 
-      // Public Shopify products endpoint.
       if (p === "/api/products" && GET) {
         const data = await storefront(env, Q_PRODUCTS);
-
-        return J(
-          { products: normalizeProducts(data) },
-          200,
-          { "cache-control": "public, max-age=60" }
-        );
+        return J({ products: normalizeProducts(data) }, 200, {
+          "cache-control": "public, max-age=60",
+        });
       }
 
-      // Public Shopify collections endpoint.
       if (p === "/api/collections" && GET) {
         const collections = await getShopifyCollections(env);
-
-        return J(
-          { collections },
-          200,
-          { "cache-control": "public, max-age=60" }
-        );
+        return J({ collections }, 200, {
+          "cache-control": "public, max-age=60",
+        });
       }
 
-      const sess = await verifySession(
-        cookie(req, "sid"),
-        env.SESSION_SECRET
-      );
+      const sess = await verifySession(cookie(req, "sid"), env.SESSION_SECRET);
 
       if (p === "/api/me" && GET) {
         return sess
@@ -828,19 +653,13 @@ export default {
       }
 
       if (p === "/api/auth/logout" && POST) {
-        return J(
-          { ok: true },
-          200,
-          {
-            "set-cookie":
-              "sid=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0",
-          }
-        );
+        return J({ ok: true }, 200, {
+          "set-cookie":
+            "sid=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0",
+        });
       }
 
-      if (!sess) {
-        throw new HttpError(401, "Please sign in with Google");
-      }
+      if (!sess) throw new HttpError(401, "Please sign in with Google");
 
       if (p === "/api/checkout" && POST) {
         return await checkout(req, env, sess);
@@ -855,11 +674,8 @@ export default {
       if (error instanceof HttpError) {
         return J({ error: error.message }, error.status);
       }
-
       console.error(error);
-
       return J({ error: "Server error" }, 500);
     }
   },
 };
-  
