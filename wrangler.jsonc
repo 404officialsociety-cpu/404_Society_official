@@ -1,0 +1,19 @@
+{
+  "name": "404-society-official",
+  "main": "index.js",
+  "compatibility_date": "2026-10-01",
+  "keep_vars": true,
+  "observability": { "enabled": true },
+  "vars": {
+    "SHOPIFY_DOMAIN": "404-society-cloudflare.myshopify.com",
+    "SHOPIFY_STOREFRONT_PUBLIC_TOKEN": "PASTE_STOREFRONT_TOKEN_HERE",
+    "SHOPIFY_API_VERSION": "2026-04",
+    "GOOGLE_CLIENT_ID": "",
+    "CASHFREE_ENV": "sandbox",
+    "SHIP_THRESHOLD": "2000",
+    "SHIP_BELOW": "0",
+    "SHIP_ABOVE": "99"
+  }
+  // Add this later for checkout (after products work):
+  // , "kv_namespaces": [ { "binding": "ORDERS", "id": "YOUR_KV_ID" } ]
+}
