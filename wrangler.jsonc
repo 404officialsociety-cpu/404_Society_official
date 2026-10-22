@@ -1,5 +1,5 @@
 {
-  "name": "404-society-official",
+  "name": "store-404",
   "main": "index.js",
   "compatibility_date": "2026-10-01",
   "keep_vars": true,
@@ -14,6 +14,6 @@
     "SHIP_BELOW": "0",
     "SHIP_ABOVE": "99"
   }
-  // Add this later for checkout (after products work):
-  // , "kv_namespaces": [ { "binding": "ORDERS", "id": "YOUR_KV_ID" } ]
+  // PHASE 2 (checkout): add a comma after the closing brace above, then add:
+  // "kv_namespaces": [ { "binding": "ORDERS", "id": "YOUR_KV_ID" } ]
 }
